@@ -1,0 +1,14 @@
+version: '2.1'
+
+services:
+  zico:
+    container_name: zico
+    build: .
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT}
+    networks:
+      - gopamoja
+
+networks:
+  gopamoja:
+    external: true
