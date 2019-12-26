@@ -7,7 +7,7 @@ const moment = require('moment');
 const AgentService = {
   findById: async (id) => {
     if(isNaN(id)) {
-      throw "String is not a string"
+      throw "agent id is not a string"
     }
 
     const client = await pg.connect()
@@ -21,7 +21,7 @@ const AgentService = {
       result = await client.query(q0, [id]);
 
       if(result == null || result.rows == null) {
-        throw "Stops get did not return any result";
+        throw "agent get did not return any result";
       }
 
       if(result.rows.length < 1) {

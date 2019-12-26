@@ -2,7 +2,7 @@ const pg = require('../config/pg');
 const Cursor = require('pg-cursor');
 const { promisify } = require("util");
 const format = require('pg-format');
-const moment = require('moment');
+const moment = require('moment-timezone');
 
 const BookingService = {
   findByString: async (string) => {
@@ -26,6 +26,13 @@ const BookingService = {
         ticket_requests.phone as phone, \
         ticket_requests.row as row, \
         ticket_requests.column as column, \
+        ticket_requests.date as date, \
+        segments.departure_day as departure_day, \
+        segments.departure_hour as departure_hour, \
+        segments.departure_minute as departure_minute, \
+        segments.arrival_day as arrival_day, \
+        segments.arrival_hour as arrival_hour, \
+        segments.arrival_minute as arrival_minute, \
         origins.name as origin_name, \
         origins.id as origin_id, \
         destinations.id as destination_id, \
@@ -50,6 +57,20 @@ const BookingService = {
       }
 
       let bookings = result.rows;
+
+      var t;
+      for(let s of bookings) {
+        //fix date formatting
+        t = moment(bookings['date']).tz("Africa/Nairobi");
+        t.set({hour:s.departure_hour,minute:s.departure_minute,second:0,millisecond:0})
+        s['formatted_departure'] = t.format("HH:mm");
+
+        t = moment(bookings['date']).tz("Africa/Nairobi");
+        t.set({hour:s.arrival_hour,minute:s.arrival_minute,second:0,millisecond:0})
+        s['formatted_arrival'] = t.format("HH:mm");
+
+        s['date'] = moment(bookings['date']).tz("Africa/Nairobi").set({hour:0,minute:0,second:0,millisecond:0}).toISOString()
+      }
 
       await client.query('COMMIT')
       return new Promise((resolve, reject) => {
