@@ -40,6 +40,46 @@ const AgentService = {
     } finally {
       client.release()
     }
+  },
+  findByToken: async (token) => {
+    if(typeof token !== 'string') {
+      throw "agent token is not a string"
+    }
+
+    const client = await pg.connect()
+    let result;
+
+    try {
+      await client.query('BEGIN')
+
+      let q0 = "select * \
+        from agent_tokens \
+        left join agents on agents.id = agent_tokens.agent_id \
+        where uuid = $1 \
+        and deleted = $2";
+
+      result = await client.query(q0, [token, false]);
+
+      if(result == null || result.rows == null) {
+        throw "agent get did not return any result";
+      }
+
+      if(result.rows.length < 1) {
+        throw "Agent not found"
+      }
+
+      let agent = result.rows[0];
+
+      await client.query('COMMIT')
+      return new Promise((resolve, reject) => {
+        resolve(agent);
+      });
+    } catch(e) {
+      await client.query('ROLLBACK')
+      throw e
+    } finally {
+      client.release()
+    }
   }
 }
 

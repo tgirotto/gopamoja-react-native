@@ -12,18 +12,18 @@ const ConfirmationService = require('../services/ConfirmationService');
 
 router.get('/bookings', async function(req, res, next) {
   try {
-    let agentId = parseInt(req.query.agent_id);
+    let token = req.headers.token;
     let string = req.query.string;
 
-    if(isNaN(agentId)) {
-      throw "Agent id is not provided"
+    if(typeof token !== 'string') {
+      throw "token id is not provided"
     }
 
     if(typeof string !== 'string') {
       throw "Invalid string"
     }
 
-    const agent = await AgentService.findById(agentId);
+    const agent = await AgentService.findByToken(token);
 
     if(agent == null) {
       throw "Agent not found"
@@ -32,6 +32,7 @@ router.get('/bookings', async function(req, res, next) {
     const bookings = await BookingService.findByString(string);
     res.json({bookings: bookings});
   } catch(e) {
+    console.log(e);
     res.status(500).json({err: e.toString()});
   }
 });
