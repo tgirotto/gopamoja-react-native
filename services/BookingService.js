@@ -61,15 +61,19 @@ const BookingService = {
       var t;
       for(let s of bookings) {
         //fix date formatting
-        t = moment(bookings['date']).tz("Africa/Nairobi");
+        t = moment(s['date']).tz("Africa/Nairobi");
         t.set({hour:s.departure_hour,minute:s.departure_minute,second:0,millisecond:0})
         s['formatted_departure'] = t.format("HH:mm");
 
-        t = moment(bookings['date']).tz("Africa/Nairobi");
+        t = moment(s['date']).tz("Africa/Nairobi");
         t.set({hour:s.arrival_hour,minute:s.arrival_minute,second:0,millisecond:0})
         s['formatted_arrival'] = t.format("HH:mm");
 
-        s['date'] = moment(bookings['date']).tz("Africa/Nairobi").set({hour:0,minute:0,second:0,millisecond:0}).toISOString()
+        s['date'] = moment(s['date']).tz("Africa/Nairobi").set({hour:0,minute:0,second:0,millisecond:0}).toISOString()
+
+        t = moment(s['date']).tz("Africa/Nairobi");
+        s['formatted_departure_date'] = t.format("MMM DD YYYY")
+        s['formatted_arrival_date'] = t.format("MMM DD YYYY")
       }
 
       await client.query('COMMIT')

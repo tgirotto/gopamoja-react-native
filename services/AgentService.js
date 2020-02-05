@@ -56,7 +56,7 @@ const AgentService = {
         from agent_tokens \
         left join agents on agents.id = agent_tokens.agent_id \
         where uuid = $1 \
-        and deleted = $2";
+        and agents.deleted = $2";
 
       result = await client.query(q0, [token, false]);
 

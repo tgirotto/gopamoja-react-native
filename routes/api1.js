@@ -8,6 +8,8 @@ let ENVIRONMENT = process.env.ENVIRONMENT || 'development';
 
 const AgentService = require('../services/AgentService');
 const BookingService = require('../services/BookingService');
+const CompanyService = require('../services/CompanyService');
+const UpcomingService = require('../services/UpcomingService');
 const ConfirmationService = require('../services/ConfirmationService');
 
 router.get('/bookings', async function(req, res, next) {
@@ -31,6 +33,51 @@ router.get('/bookings', async function(req, res, next) {
 
     const bookings = await BookingService.findByString(string);
     res.json({bookings: bookings});
+  } catch(e) {
+    console.log(e);
+    res.status(500).json({err: e.toString()});
+  }
+});
+
+router.get('/companies', async function(req, res, next) {
+  try {
+    let token = req.headers.token;
+
+    if(typeof token !== 'string') {
+      throw "token id is not provided"
+    }
+
+    const agent = await AgentService.findByToken(token);
+
+    if(agent == null) {
+      throw "Agent not found"
+    }
+
+    const companies = await CompanyService.findByAgentPhone(agent['phone']);
+    res.json({companies: companies});
+  } catch(e) {
+    console.log(e);
+    res.status(500).json({err: e.toString()});
+  }
+});
+
+router.get('/upcoming', async function(req, res, next) {
+  try {
+    let token = req.headers.token;
+    let companyId = parseInt(req.query.companyId);
+
+    if(typeof token !== 'string') {
+      throw "token id is not provided"
+    }
+
+    const agent = await AgentService.findByToken(token);
+
+    if(agent == null) {
+      throw "Agent not found"
+    }
+
+    const schedule = await UpcomingService.findByCompanyId(companyId);
+    res.json({upcoming: schedule});
   } catch(e) {
     console.log(e);
     res.status(500).json({err: e.toString()});
