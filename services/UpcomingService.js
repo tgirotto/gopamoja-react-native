@@ -20,6 +20,7 @@ const UpcomingService = {
       let q0 = `select \
         route_stops.id as id, \
         routes.id as route_id, \
+        stops.id as stop_id, \
         route_stops.position as position, \
         trips.id as trip_id, \
         companies.name as company_name, \
@@ -33,7 +34,8 @@ const UpcomingService = {
         left join trips on trips.route_id = routes.id \
         left join stops on stops.id = route_stops.stop_id \
         left join companies on companies.id = routes.company_id \
-        where routes.deleted = $1 and companies.id = $2`;
+        where routes.deleted = $1 and companies.id = $2 \
+        order by route_stops.position asc`;
 
       result = await client.query(q0, [false, companyId]);
 
@@ -79,15 +81,15 @@ const UpcomingService = {
         return x;
       })
 
-      let now = moment().add(1, 'days')
+      let now = moment().startOf('day');
       let i = 0;
-      let MAX_DAYS = 7;
+      let MAX_DAYS = 1;
 
-      let schedule = [], t, d;
+      let schedule = [], t, d, r;
       while(i < MAX_DAYS) {
         t = {
-          date: moment(now).startOf('day'),
-          formatted_date: moment(now).startOf('day').format("dddd, MMMM Do YYYY"),
+          date: moment(now),
+          formatted_date: moment(now).format("dddd, MMMM Do YYYY"),
           items: []
         }
 
@@ -97,7 +99,8 @@ const UpcomingService = {
           }
 
           if(upcoming[j]['days_of_the_week'].includes(now.day())) {
-            t['items'].push(upcoming[j]);
+            upcoming[j]['date'] = moment(now);
+            t['items'].push(JSON.parse(JSON.stringify(upcoming[j])));
           }
         }
 
@@ -107,7 +110,6 @@ const UpcomingService = {
       }
 
       await client.query('COMMIT')
-
       return new Promise((resolve, reject) => {
         resolve(schedule);
       });

@@ -11,6 +11,7 @@ const BookingService = require('../services/BookingService');
 const CompanyService = require('../services/CompanyService');
 const UpcomingService = require('../services/UpcomingService');
 const ConfirmationService = require('../services/ConfirmationService');
+const TicketRequestService = require('../services/TicketRequestService');
 
 router.get('/bookings', async function(req, res, next) {
   try {
@@ -84,26 +85,60 @@ router.get('/upcoming', async function(req, res, next) {
   }
 });
 
+router.get('/trips/:id/layout', async function(req, res, next) {
+  try {
+    let token = req.headers.token;
+    let tripId = parseInt(req.params.id);
+    let stopId = parseInt(req.query.stopId);
+    let date = req.query.date;
+
+    if(typeof token !== 'string') {
+      throw "token id is not provided"
+    }
+
+    if(isNaN(tripId)) {
+      throw "trip id invalid"
+    }
+
+    if(isNaN(stopId)) {
+      throw "stop id invalid"
+    }
+
+    date = moment(date)
+
+    const agent = await AgentService.findByToken(token);
+
+    if(agent == null) {
+      throw "Agent not found"
+    }
+
+    const schedule = await BookingService.findLayoutByTripIdAndDateAndStopId(tripId, date, stopId);
+    res.json({upcoming: schedule});
+  } catch(e) {
+    res.status(500).json({err: e.toString()});
+  }
+});
+
 router.post('/confirmations', async function(req, res, next) {
   try {
-    let agentId = parseInt(req.body.agentId);
+    let token = req.headers.token;
     let bookingId = parseInt(req.body.bookingId);
 
-    if(isNaN(agentId)) {
-      throw "Agent id is not provided"
+    if(typeof token !== 'string') {
+      throw "token id is not provided"
     }
 
     if(isNaN(bookingId)) {
       throw "Booking id is not provided"
     }
 
-    const agent = await AgentService.findById(agentId);
+    const agent = await AgentService.findByToken(token);
 
     if(agent == null) {
       throw "Agent not found"
     }
 
-    const confirmation = await ConfirmationService.insertOne(agentId, bookingId);
+    const confirmation = await ConfirmationService.insertOne(agent['id'], bookingId);
     res.json({confirmation: confirmation});
   } catch(e) {
     res.status(500).json({err: e.toString()});
