@@ -35,7 +35,6 @@ router.get('/bookings', async function(req, res, next) {
     const bookings = await BookingService.findByString(string);
     res.json({bookings: bookings});
   } catch(e) {
-    console.log(e);
     res.status(500).json({err: e.toString()});
   }
 });
@@ -57,7 +56,6 @@ router.get('/companies', async function(req, res, next) {
     const companies = await CompanyService.findByAgentPhone(agent['phone']);
     res.json({companies: companies});
   } catch(e) {
-    console.log(e);
     res.status(500).json({err: e.toString()});
   }
 });
@@ -80,7 +78,6 @@ router.get('/upcoming', async function(req, res, next) {
     const schedule = await UpcomingService.findByCompanyId(companyId);
     res.json({upcoming: schedule});
   } catch(e) {
-    console.log(e);
     res.status(500).json({err: e.toString()});
   }
 });
@@ -112,8 +109,8 @@ router.get('/trips/:id/layout', async function(req, res, next) {
       throw "Agent not found"
     }
 
-    const schedule = await BookingService.findLayoutByTripIdAndDateAndStopId(tripId, date, stopId);
-    res.json({upcoming: schedule});
+    const layout = await BookingService.findLayoutByTripIdAndDateAndStopId(tripId, date, stopId);
+    res.json({upcoming: layout});
   } catch(e) {
     res.status(500).json({err: e.toString()});
   }

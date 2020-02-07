@@ -18,7 +18,7 @@ const TicketRequestService = {
 
       let q0 = "select * \
         from bookings \
-        left join ticket_requests on bookings.ticket_request_id = ticket_requests.id \
+        left join ticket_requests on bookings.ticket_request_id = ticket_requests.id * \
         where bookings.id = $1";
 
       result = await client.query(q0, [id]);
@@ -32,7 +32,6 @@ const TicketRequestService = {
       }
 
       let ticketRequest = result.rows[0];
-
       await client.query('COMMIT')
       return new Promise((resolve, reject) => {
         resolve(ticketRequest);

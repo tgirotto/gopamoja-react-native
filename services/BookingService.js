@@ -164,12 +164,14 @@ const BookingService = {
         segments.departure_minute as departure_minute, \
         segments.arrival_day as arrival_day, \
         segments.arrival_hour as arrival_hour, \
-        segments.arrival_minute as arrival_minute \
+        segments.arrival_minute as arrival_minute, \
+        confirmations.id as confirmation_id \
         from bookings \
         left join ticket_requests on bookings.ticket_request_id = ticket_requests.id \
         left join segments on ticket_requests.segment_id = segments.id \
         left join stops as origins on origins.id = segments.origin_id \
         left join stops as destinations on destinations.id = segments.destination_id \
+        left join confirmations on confirmations.booking_id = bookings.id \
         where segments.route_id = $1 and date(ticket_requests.date) = date($2)"
 
       result = await client.query(q2, [route['route_id'], date]);
@@ -215,11 +217,17 @@ const BookingService = {
           if((originPosition < reqStopPosition && destinationPosition > reqStopPosition) ||
              (originPosition === reqStopPosition)) {
             row = rows[b['row']]
+
             if(row == null) {
               continue
             }
 
-            rows[b['row']] = row.substr(0, b['column']) + 'b' + row.substr(b['column'] + 1);
+            if(b['confirmation_id'] == null) {
+              rows[b['row']] = row.substr(0, b['column']) + 'b' + row.substr(b['column'] + 1);
+            } else if(!isNaN(b['confirmation_id'])) {
+              rows[b['row']] = row.substr(0, b['column']) + 'c' + row.substr(b['column'] + 1);
+            }
+
             overlappingBookings.push(b)
           }
         }
@@ -228,7 +236,6 @@ const BookingService = {
       }
 
       await client.query('COMMIT')
-
       return new Promise((resolve, reject) => {
         resolve({
           layout: layout,
