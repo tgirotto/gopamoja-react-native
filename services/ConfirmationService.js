@@ -62,7 +62,6 @@ const BookingService = {
       }
 
       let confirmation = result.rows[0];
-
       confirmation['booking'] = booking;
       await client.query('COMMIT')
       return new Promise((resolve, reject) => {
